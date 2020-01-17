@@ -1,0 +1,13 @@
+{
+  "name": "kbbi.js",
+  "version": "1.0.0",
+  "description": "KBBI Daring antarmuka teks",
+  "main": "index.js",
+  "scripts": {},
+  "author": "adila",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.1",
+    "cheerio": "^1.0.0-rc.3"
+  }
+}
