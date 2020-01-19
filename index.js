@@ -27,15 +27,18 @@ const cari = async (katakunci) => {
     const $ = cheerio.load(hasil);
 
     // hasil pencarian kata
-    const hasilPencarian = $('h2').text();
+    const hasilPencarian = $('h2')
+      .text()
+      .trim();
+
     // hasil definisi kata
     const hasilDefinisi = [];
+
     // hasil jenis kata
     const jenisKataDefinisi = [];
 
     // jika entri tidak ditemukan
     const tidakDitemukan = $('.body-content')
-      .clone()
       .children('h4')
       .first()
       .text()
@@ -46,56 +49,101 @@ const cari = async (katakunci) => {
     }
 
     // proses mengambil data
-    $('ol > li').each((i, el) => {
-      const definisi = $(el)
-        .clone()
-        .children()
-        .remove()
-        .end()
-        .text();
-
-      const jenis = $(el)
-        .clone()
+    // untuk hasil total 1
+    if ($('.adjusted-par').length) {
+      const jenis = $('.adjusted-par > li')
         .children()
         .first()
         .text()
-        .trim()
-        .split(/\W+/);
+        .trim();
 
-      $(el)
-        .clone()
+      const definisiJenis = $('.adjusted-par > li')
         .find('span')
-        .each((i, el) => {
-          const definisiJenis = $(el).attr('title');
+        .attr('title');
 
-          jenisKataDefinisi.push(definisiJenis);
-        });
-
-      $(el)
-        .find('font:nth-child(1)')
+      $('.adjusted-par > li')
+        .children()
+        .first()
         .remove();
 
-      const contoh = $(el)
-        .children()
+      const definisi = $('.adjusted-par > li')
         .text()
         .trim();
 
-      // masukkan hasil ke array
-      hasilDefinisi[i] = { jenis, definisi, contoh };
-    });
+      hasilDefinisi.push({ jenis, definisi });
+      jenisKataDefinisi.push(definisiJenis);
+    } else {
+      // hasil lebih dari 1
+      $('ol > li').each((i, el) => {
+        const definisi = $(el)
+          .clone()
+          .children()
+          .remove()
+          .end()
+          .text()
+          .trim();
+
+        const jenis = $(el)
+          .children()
+          .first()
+          .text()
+          .trim()
+          .split(/\W+/);
+
+        $(el)
+          .find('span')
+          .each((i, el) => {
+            const definisiJenis = $(el)
+              .attr('title')
+              .trim();
+
+            jenisKataDefinisi.push(definisiJenis);
+          });
+
+        $(el)
+          .find('font:nth-child(1)')
+          .remove();
+
+        const contoh = $(el)
+          .children()
+          .text()
+          .trim();
+
+        // masukkan hasil ke array
+        hasilDefinisi[i] = { jenis, definisi, contoh };
+      });
+    }
 
     // hilangkan duplikat
     const filter = Array.from(new Set(jenisKataDefinisi));
 
+    // kumpulkan hasil
+    const definisi = hasilDefinisi
+      .map((value, index) => {
+        const output = `${index + 1}: (${value.jenis}) ${value.definisi} ${
+          value.contoh ? value.contoh : ''
+        }`;
+        return output;
+      })
+      .join('\n');
+
+    const jenis = filter
+      .map((val) => {
+        const output = `${val}`;
+        return output;
+      })
+      .join('\n');
+
     // tampilkan hasil
-    console.log(hasilPencarian);
-    hasilDefinisi.map((value, index) => {
-      console.log(`${index + 1}: (${value.jenis}) ${value.definisi} ${value.contoh}`);
-    });
-    console.log('');
-    filter.map((val) => {
-      console.log(val);
-    });
+    const output = {
+      kata: hasilPencarian,
+      definisi: definisi,
+      jenis: jenis !== 'undefined' ? jenis : ''
+    };
+
+    console.log(output.kata + '\n');
+    console.log(output.definisi + '\n');
+    console.log(output.jenis);
   } catch (err) {
     // jika error terjadi
     console.log(err);
